@@ -261,12 +261,34 @@ export interface Database {
           id: string;
           mall_id: string;
           offer_id: string;
-          user_id: string;
+          user_id: string | null;
           code: string;
           status: 'active' | 'redeemed' | 'expired' | 'cancelled';
           activated_at: string;
           expires_at: string;
           redeemed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          mall_id: string;
+          offer_id: string;
+          user_id?: string | null;
+          code: string;
+          status?: 'active' | 'redeemed' | 'expired' | 'cancelled';
+          activated_at?: string;
+          expires_at: string;
+          redeemed_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          mall_id?: string;
+          offer_id?: string;
+          user_id?: string | null;
+          code?: string;
+          status?: 'active' | 'redeemed' | 'expired' | 'cancelled';
+          activated_at?: string;
+          expires_at?: string;
+          redeemed_at?: string | null;
         };
       };
       coupon_redemptions: {

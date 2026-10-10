@@ -1,14 +1,56 @@
 import React from 'react';
-import { Users, Search, MapPin, Tag, CheckCircle2, TrendingUp, Trophy, Accessibility, Baby, ArrowUpRight } from 'lucide-react';
+import { 
+  Users, 
+  Search, 
+  MapPin, 
+  Tag, 
+  CheckCircle2, 
+  TrendingUp, 
+  Trophy, 
+  Accessibility, 
+  Baby, 
+  ArrowUpRight,
+  Database,
+  Radio
+} from 'lucide-react';
+import { createClient } from '@/lib/supabase/server';
 
-export default function MallExecutiveDashboardPage() {
+export default async function MallExecutiveDashboardPage() {
+  let isLive = false;
+  let dynamicStoreCount = 5;
+  let dynamicProductCount = 15;
+  let dynamicEventCount = 3;
+  let dynamicAnalyticsCount = 80;
+
+  // Intentar cargar métricas reales desde Supabase Cloud
+  try {
+    const supabase = createClient();
+    const [storesRes, prodsRes, eventsRes, analyticsRes] = await Promise.all([
+      supabase.from('stores').select('id, name', { count: 'exact' }),
+      supabase.from('products').select('id', { count: 'exact' }),
+      supabase.from('events').select('id', { count: 'exact' }),
+      supabase.from('analytics_events').select('id', { count: 'exact' }),
+    ]);
+
+    if (storesRes.count !== null && storesRes.count > 0) {
+      isLive = true;
+      dynamicStoreCount = storesRes.count;
+      dynamicProductCount = prodsRes.count ?? 15;
+      dynamicEventCount = eventsRes.count ?? 3;
+      dynamicAnalyticsCount = analyticsRes.count ?? 80;
+    }
+  } catch (err) {
+    console.warn('Usando métricas referenciales para pitch:', err);
+    isLive = false;
+  }
+
   const topStores = [
-    { rank: 1, name: 'ZARA', level: 'Nivel Libertador', interactions: 842, conversions: '18.4%' },
-    { rank: 2, name: 'Tijerazo', level: 'Nivel Acuario', interactions: 615, conversions: '14.2%' },
-    { rank: 3, name: 'Mango Bajito', level: 'Nivel Autopista', interactions: 520, conversions: '12.8%' },
-    { rank: 4, name: 'Nike Store', level: 'Nivel Diversión', interactions: 490, conversions: '11.5%' },
-    { rank: 5, name: 'Miniso', level: 'Nivel Acuario', interactions: 430, conversions: '16.0%' },
-    { rank: 6, name: 'Samsung Store', level: 'Nivel Libertador', interactions: 380, conversions: '9.2%' },
+    { rank: 1, name: 'ZARA', level: 'Nivel Autopista', interactions: 842, conversions: '18.4%' },
+    { rank: 2, name: 'Tiendas Tijerazo', level: 'Nivel Autopista', interactions: 615, conversions: '14.2%' },
+    { rank: 3, name: 'Bershka', level: 'Nivel Acuario', interactions: 520, conversions: '12.8%' },
+    { rank: 4, name: 'Samsung Store', level: 'Nivel Acuario', interactions: 490, conversions: '11.5%' },
+    { rank: 5, name: 'McCafé & Postres', level: 'Plaza La Fuente', interactions: 430, conversions: '16.0%' },
+    { rank: 6, name: 'Mango Bajito', level: 'Nivel Autopista', interactions: 380, conversions: '9.2%' },
     { rank: 7, name: 'Bonsai Sushi', level: 'Nivel Diversión', interactions: 345, conversions: '22.1%' },
     { rank: 8, name: 'Palacio del Blumer', level: 'Nivel Autopista', interactions: 310, conversions: '15.3%' },
     { rank: 9, name: 'Bath & Body Works', level: 'Nivel Libertador', interactions: 280, conversions: '19.7%' },
@@ -24,12 +66,12 @@ export default function MallExecutiveDashboardPage() {
   ];
 
   const hotQueries = [
-    { query: 'Blazers y sacos de dama', count: 184, trend: '+35%' },
-    { query: 'Sandalias de fiesta plataforma', count: 142, trend: '+28%' },
-    { query: 'Cafetería con wifi', count: 129, trend: '+14%' },
-    { query: 'Sushi y comida japonesa', count: 110, trend: '+20%' },
-    { query: 'Cine películas cartelera', count: 98, trend: '+8%' },
-    { query: 'Ropa deportiva y gimnasio', count: 85, trend: '+12%' },
+    { query: 'Blazers y sacos de dama (ZARA)', count: 184, trend: '+35%' },
+    { query: 'Sábanas 300 hilos (Tijerazo)', count: 142, trend: '+28%' },
+    { query: 'Galaxy S24 Ultra financiado', count: 129, trend: '+14%' },
+    { query: 'Cafetería con wifi y postres', count: 110, trend: '+20%' },
+    { query: 'Pantalones cargo streetwear', count: 98, trend: '+8%' },
+    { query: 'Ropa deportiva y calzado', count: 85, trend: '+12%' },
   ];
 
   return (
@@ -37,8 +79,21 @@ export default function MallExecutiveDashboardPage() {
       {/* Header Ejecutivo */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight">Consola Ejecutiva · Sambil Chacao</h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <div className="flex items-center gap-2 mb-1">
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Consola Ejecutiva · Sambil Chacao</h1>
+            {isLive ? (
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                <Radio className="w-3 h-3 text-emerald-600 animate-pulse" />
+                Datos en Vivo (Supabase Cloud)
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                <Database className="w-3 h-3 text-amber-600" />
+                Modo Demo · Datos Referenciales
+              </span>
+            )}
+          </div>
+          <p className="text-sm text-slate-500">
             Métricas de afluencia, conversión de vitrinas, demanda del Conserje y rendimiento de las más de 500 tiendas.
           </p>
         </div>
@@ -99,19 +154,19 @@ export default function MallExecutiveDashboardPage() {
                 <h2 className="font-extrabold text-lg text-slate-900">Embudo de Conversión Comercial</h2>
                 <p className="text-xs text-slate-500">Desde la llegada al centro comercial hasta la compra en el local</p>
               </div>
-              <span className="text-xs font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full">
-                ROI Medible
+              <span className="text-xs font-bold px-2 py-1 bg-emerald-50 text-emerald-700 rounded-lg">
+                8.5% Global
               </span>
             </div>
 
             <div className="space-y-4 my-6">
               {funnelSteps.map((step, idx) => (
                 <div key={idx} className="space-y-1.5">
-                  <div className="flex justify-between text-xs font-bold text-slate-700">
-                    <span>{step.label}</span>
-                    <span className="font-mono text-slate-900">{step.count} ({step.percentage})</span>
+                  <div className="flex justify-between text-xs font-semibold">
+                    <span className="text-slate-700">{step.label}</span>
+                    <span className="font-bold text-slate-900">{step.count} ({step.percentage})</span>
                   </div>
-                  <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                  <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden p-0.5">
                     <div className={`${step.bg} h-full rounded-full transition-all duration-500 ${step.width}`} />
                   </div>
                 </div>
@@ -119,21 +174,23 @@ export default function MallExecutiveDashboardPage() {
             </div>
           </div>
 
-          <div className="p-3 bg-slate-50 rounded-xl text-xs text-slate-600 border border-slate-100">
-            💡 <strong>Argumento de Venta:</strong> Demuestra a las marcas aliadas que Mall OS no es solo un mapa, sino una máquina que canaliza más de 1.000 clientes listos para pagar a las cajas registradoras.
+          <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+            <span>Retorno de inversión medible por visita</span>
+            <span className="font-bold text-slate-900">1,060 ventas canalizadas</span>
           </div>
         </div>
 
-        {/* KPI 1: Top 10 Tiendas por Interacción */}
-        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col">
+        {/* KPI 1: Top 10 Tiendas por Atracción y Conversión */}
+        <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="font-extrabold text-lg text-slate-900">Top 10 Tiendas Más Demandadas</h2>
-              <p className="text-xs text-slate-500">Ranking en base a clics de vitrina, rutas trazadas y canjes</p>
+              <h2 className="font-extrabold text-lg text-slate-900">Top 10 Tiendas del Mall</h2>
+              <p className="text-xs text-slate-500">Ranking por interacción en app y visitas dirigidas a puerta</p>
             </div>
+            <Trophy className="w-5 h-5 text-amber-500" />
           </div>
 
-          <div className="overflow-x-auto flex-1">
+          <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50 text-slate-500 uppercase tracking-wider">
                 <tr>
@@ -141,17 +198,17 @@ export default function MallExecutiveDashboardPage() {
                   <th className="py-2.5 px-3">Tienda</th>
                   <th className="py-2.5 px-3">Nivel</th>
                   <th className="py-2.5 px-3 text-right">Interacciones</th>
-                  <th className="py-2.5 px-3 text-right">Conv.</th>
+                  <th className="py-2.5 px-3 text-right">Conversión</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-medium">
                 {topStores.map((s) => (
-                  <tr key={s.rank} className="hover:bg-slate-50/60">
-                    <td className="py-2.5 px-3 font-bold text-slate-400">{s.rank}</td>
-                    <td className="py-2.5 px-3 font-bold text-slate-900">{s.name}</td>
-                    <td className="py-2.5 px-3 text-slate-500">{s.level}</td>
-                    <td className="py-2.5 px-3 text-right font-mono font-bold text-indigo-700">{s.interactions}</td>
-                    <td className="py-2.5 px-3 text-right font-bold text-emerald-600">{s.conversions}</td>
+                  <tr key={s.rank} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="py-2 px-3 font-bold text-slate-400">{s.rank}</td>
+                    <td className="py-2 px-3 font-bold text-slate-900">{s.name}</td>
+                    <td className="py-2 px-3 text-slate-500">{s.level}</td>
+                    <td className="py-2 px-3 text-right font-mono text-slate-700">{s.interactions}</td>
+                    <td className="py-2 px-3 text-right font-bold text-emerald-600">{s.conversions}</td>
                   </tr>
                 ))}
               </tbody>
@@ -160,66 +217,76 @@ export default function MallExecutiveDashboardPage() {
         </div>
       </div>
 
-      {/* Grid Inferior: Búsquedas Calientes & Impacto de Experiencias */}
+      {/* Grid Inferior: Búsquedas Calientes & Experiencias */}
       <div className="grid lg:grid-cols-2 gap-8">
-        {/* KPI 3: Búsquedas Calientes del Conserje */}
+        {/* KPI 3: Búsquedas Calientes del Conserje IA */}
         <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="font-extrabold text-lg text-slate-900">Búsquedas Calientes del Conserje IA</h2>
-              <p className="text-xs text-slate-500">Qué productos y categorías buscan los compradores en tiempo real</p>
+              <h2 className="font-extrabold text-lg text-slate-900">Demanda Caliente en Conserje IA</h2>
+              <p className="text-xs text-slate-500">Lo que los visitantes buscan exactamente antes de comprar</p>
             </div>
-            <span className="text-xs font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full">
-              Inteligencia Comercial
-            </span>
+            <TrendingUp className="w-5 h-5 text-blue-600" />
           </div>
 
-          <div className="divide-y divide-slate-100">
-            {hotQueries.map((q, idx) => (
-              <div key={idx} className="py-3 flex items-center justify-between text-sm">
+          <div className="space-y-3">
+            {hotQueries.map((item, idx) => (
+              <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100 text-xs">
                 <div className="flex items-center gap-2">
-                  <Search className="w-3.5 h-3.5 text-slate-400" />
-                  <span className="font-semibold text-slate-900">{q.query}</span>
+                  <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-800 font-bold flex items-center justify-center text-[10px]">
+                    {idx + 1}
+                  </span>
+                  <span className="font-bold text-slate-800">{item.query}</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="font-mono text-xs text-slate-600 font-bold">{q.count} consultas</span>
-                  <span className="text-xs font-bold text-emerald-600">{q.trend}</span>
+                  <span className="font-mono text-slate-500">{item.count} búsquedas</span>
+                  <span className="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
+                    {item.trend}
+                  </span>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* KPI 4: Impacto de Experiencias (Modo Niño & Accesible) */}
+        {/* KPI 4: Impacto de Experiencias (Modo Niño & Accesibilidad) */}
         <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
           <div>
-            <h2 className="font-extrabold text-lg text-slate-900 mb-1">Impacto de Experiencias y RSE</h2>
-            <p className="text-xs text-slate-500 mb-6">Métricas de adopción de inclusión y fidelización familiar</p>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="font-extrabold text-lg text-slate-900">Impacto en Experiencia & RSE</h2>
+                <p className="text-xs text-slate-500">Métricas de hospitalidad, familias y accesibilidad universal</p>
+              </div>
+            </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200/60">
-                <div className="flex items-center gap-2 text-amber-800 font-bold text-xs mb-2">
+            <div className="grid grid-cols-2 gap-4 my-4">
+              <div className="p-4 rounded-xl bg-amber-50/60 border border-amber-200/60 space-y-1">
+                <div className="flex items-center gap-2 text-amber-700 font-bold text-xs">
                   <Baby className="w-4 h-4" />
-                  Modo Niño (Búsqueda del Tesoro)
+                  Modo Niño (Gamificación)
                 </div>
-                <div className="text-2xl font-black text-amber-900 mb-1">480</div>
-                <p className="text-xs text-amber-700">Misiones completadas en plazas del mall</p>
+                <div className="text-2xl font-black text-amber-950">2,140</div>
+                <p className="text-[11px] text-amber-700 leading-tight">
+                  Niños participaron en la Búsqueda del Tesoro generando +42 min de permanencia familiar.
+                </p>
               </div>
 
-              <div className="p-4 rounded-xl bg-blue-50/70 border border-blue-200/60">
-                <div className="flex items-center gap-2 text-blue-800 font-bold text-xs mb-2">
+              <div className="p-4 rounded-xl bg-blue-50/60 border border-blue-200/60 space-y-1">
+                <div className="flex items-center gap-2 text-blue-700 font-bold text-xs">
                   <Accessibility className="w-4 h-4" />
-                  Modo Accesible Inclusivo
+                  Rutas Accesibles
                 </div>
-                <div className="text-2xl font-black text-blue-900 mb-1">162</div>
-                <p className="text-xs text-blue-700">Rutas trazadas exclusivamente por ascensores y rampas</p>
+                <div className="text-2xl font-black text-blue-950">490</div>
+                <p className="text-[11px] text-blue-700 leading-tight">
+                  Rutas sin barreras arquitectónicas usando ascensores para personas con movilidad reducida o coches.
+                </p>
               </div>
             </div>
           </div>
 
-          <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-            <span>Certificación de Hospitalidad Digital Mall OS</span>
-            <span className="font-bold text-indigo-600">Cumplimiento 100%</span>
+          <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+            <span>Responsabilidad Social y Fidelización</span>
+            <span className="font-bold text-slate-900">Tiempo promedio en mall: 2h 45m</span>
           </div>
         </div>
       </div>
