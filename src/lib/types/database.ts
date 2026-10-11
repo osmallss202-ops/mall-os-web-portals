@@ -539,6 +539,19 @@ export interface Database {
           accepted_at?: string | null;
           created_at?: string;
         };
+        Update: {
+          id?: string;
+          email?: string;
+          role?: 'store_manager' | 'mall_admin';
+          mall_id?: string;
+          store_id?: string | null;
+          invited_by?: string | null;
+          token?: string;
+          expires_at?: string;
+          accepted_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
       };
       mall_settings: {
         Row: {

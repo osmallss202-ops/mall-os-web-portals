@@ -71,7 +71,7 @@ export default function InviteManagerModal({
 
     try {
       const supabase = createClient();
-      const { error } = await supabase.from('invitations').insert({
+      const { error } = await (supabase.from('invitations') as any).insert({
         email: email.trim().toLowerCase(),
         role: 'store_manager',
         mall_id: mallId,
